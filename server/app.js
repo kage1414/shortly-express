@@ -17,18 +17,15 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 
 
-app.get('/', 
-(req, res) => {
+app.get('/', (req, res) => {
   res.render('index');
 });
 
-app.get('/create', 
-(req, res) => {
+app.get('/create', (req, res) => {
   res.render('index');
 });
 
-app.get('/links', 
-(req, res, next) => {
+app.get('/links', (req, res, next) => {
   models.Links.getAll()
     .then(links => {
       res.status(200).send(links);
@@ -38,8 +35,7 @@ app.get('/links',
     });
 });
 
-app.post('/links', 
-(req, res, next) => {
+app.post('/links', (req, res, next) => {
   var url = req.body.url;
   if (!models.Links.isValidUrl(url)) {
     // send back a 404 if link is not valid
@@ -77,7 +73,48 @@ app.post('/links',
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+app.post('/login', (req, res, next) => {
 
+  return models.Users.get({username: req.body.username})
+    .then((results) => {
+      // console.log('Users.get results', results.username);
+      if (!results) {
+        throw new Error('User does not exist');
+      }
+      return models.Users.compare(req.body.password, results.password, results.salt);
+    })
+    .then((bool) => {
+      if (!bool) {
+        throw new Error('Incorrect Password');
+      }
+      res.redirect('/');
+    })
+    .catch((err) => {
+      res.redirect('/login');
+    });
+
+});
+
+app.post('/signup', (req, res, next) => {
+  return models.Users.get({username: req.body.username})
+    .then((results) => {
+      if (!results) {
+        //create new user and save to db
+        return models.Users.create(req.body);
+      } else {
+        // If user already exists
+        // Throw error to catch block
+        throw new Error('User Exists');
+      }
+    })
+    .then(() => {
+      res.redirect('/');
+    })
+    .catch(() => {
+      // Redirect, user should choose different username
+      res.redirect('/signup');
+    });
+});
 
 
 /************************************************************/
