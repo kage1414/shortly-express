@@ -376,6 +376,7 @@ describe('', function() {
     describe('Session Parser', function() {
       it('initializes a new session when there are no cookies on the request', function(done) {
         var requestWithoutCookies = httpMocks.createRequest();
+        // console.log('sepcs', requestWithoutCookies);
         var response = httpMocks.createResponse();
 
         createSession(requestWithoutCookies, response, function() {
