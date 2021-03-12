@@ -2,7 +2,8 @@ const db = require('../db');
 const _ = require('lodash');
 
 const executeQuery = (query, values) => {
-  return db.queryAsync(query, values).spread(results => results);
+  let test = db.queryAsync(query, values).spread(results => results);
+  return test;
 };
 
 const parseData = options => {

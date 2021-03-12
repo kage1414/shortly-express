@@ -7,6 +7,7 @@ const parseCookies = (req, res, next) => {
       cookie[tuple[0]] = tuple[1];
     });
     req.cookies = cookie;
+    console.log('cookie', cookie);
   }
   next();
 };

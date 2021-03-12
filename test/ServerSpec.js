@@ -380,6 +380,7 @@ describe('', function() {
         var response = httpMocks.createResponse();
 
         createSession(requestWithoutCookies, response, function() {
+          //console.log('spec', requestWithoutCookies);
           var session = requestWithoutCookies.session;
           expect(session).to.exist;
           expect(session).to.be.an('object');
