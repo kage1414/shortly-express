@@ -12,7 +12,7 @@ var port = 4568;
 // Mimic the behavior of xit and xdescribe with xbeforeEach.
 // Remove the 'x' from beforeEach block when working on
 // authentication tests.
-/************************************************************/
+/***********************************************************/
 var xbeforeEach = function() {};
 /************************************************************/
 
