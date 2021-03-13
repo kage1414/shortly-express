@@ -1,5 +1,4 @@
 const parseCookies = (req, res, next) => {
-  console.log('parsecookies', req);
   if (req.headers.cookie) {
     let cookie = {};
     let splitCookies = req.headers.cookie.split('; ');
@@ -8,7 +7,8 @@ const parseCookies = (req, res, next) => {
       cookie[tuple[0]] = tuple[1];
     });
     req.cookies = cookie;
-    // console.log('cookie', cookie);
+  } else {
+    req.cookies = {};
   }
   next();
 };

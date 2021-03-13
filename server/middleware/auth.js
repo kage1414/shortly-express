@@ -2,7 +2,7 @@ const models = require('../models');
 const Promise = require('bluebird');
 
 module.exports.createSession = (req, res, next) => {
-  console.log('req.cookies', req.cookies.shortly);
+  console.log('req.cookies');
   // Request comes in
   // Check to see if cookies are attached to headers
   if (!req.cookies.shortlyid) {
@@ -10,17 +10,17 @@ module.exports.createSession = (req, res, next) => {
     //If not, create a new session
     return models.Sessions.create()
       .then((hash) => {
-        console.log('hash', hash);
+        // console.log('hash', hash);
         let id = hash.insertId;
         return models.Sessions.get({id});
       })
       .then((data) => {
         // console.log('data', data);
         req.session = data;
-        console.log('req.session', req.session);
+        // console.log('req.session', req.session);
         res.cookie('shortlyid', req.session.hash);
 
-        // res.send('cookie set');
+        res.send('cookie set');
         next();
       })
       .catch((err) => {
@@ -32,23 +32,22 @@ module.exports.createSession = (req, res, next) => {
     // Check if incoming cookies exist within the session table
     return models.Sessions.get({hash})
       .then((data) => {
-        console.log('data', data);
-        // If it matches, session is valid
+      // If it matches, session is valid
         if (!data) {
           return models.Sessions.create()
           // Create a new session
             .then((hash) => {
-              console.log('hash', hash);
               let id = hash.insertId;
               return models.Sessions.get({id});
             })
             .then((data) => {
-              // console.log('data', data);
+              console.log('data', data);
+
               req.session = data;
               console.log('req.session', req.session);
               res.cookie('shortlyid', req.session.hash);
 
-              // res.send('cookie set');
+              res.send('cookie set');
               next();
             })
             .catch((err) => {
@@ -64,7 +63,7 @@ module.exports.createSession = (req, res, next) => {
       });
   }
 
-  next();
+  // next();
 };
 
 /************************************************************/
