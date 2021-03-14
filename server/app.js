@@ -18,16 +18,18 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 app.use(cookieParser);
 app.use(Auth.createSession);
+//app.use(Auth.loggedIn);
+//app.use(Auth.verifySession);
 
-app.get('/', (req, res) => {
+app.get('/', Auth.verifySession, (req, res) => {
   res.render('index');
 });
 
-app.get('/create', (req, res) => {
+app.get('/create', Auth.verifySession, (req, res) => {
   res.render('index');
 });
 
-app.get('/links', (req, res, next) => {
+app.get('/links', Auth.verifySession, (req, res, next) => {
   models.Links.getAll()
     .then(links => {
       res.status(200).send(links);
@@ -79,7 +81,6 @@ app.post('/login', (req, res, next) => {
 
   return models.Users.get({username: req.body.username})
     .then((results) => {
-      // console.log('Users.get results', results.username);
       if (!results) {
         throw new Error('User does not exist');
       }
@@ -89,6 +90,17 @@ app.post('/login', (req, res, next) => {
       if (!bool) {
         throw new Error('Incorrect Password');
       }
+      let username = req.body.username;
+      return models.Users.get({username})
+        .then((results) => {
+          req.session.userId = results.insertId;
+          let options = {hash: req.session.hash};
+          let values = {userId: results.insertId};
+          models.Sessions.update(options, values);
+        });
+    })
+    .then((results) => {
+
       res.redirect('/');
     })
     .catch((err) => {
@@ -102,7 +114,13 @@ app.post('/signup', (req, res, next) => {
     .then((results) => {
       if (!results) {
         //create new user and save to db
-        return models.Users.create(req.body);
+        return models.Users.create(req.body)
+          .then((results) => {
+            req.session.userId = results.insertId;
+            let options = {hash: req.session.hash};
+            let values = {userId: results.insertId};
+            models.Sessions.update(options, values);
+          });
       } else {
         // If user already exists
         // Throw error to catch block
@@ -116,6 +134,19 @@ app.post('/signup', (req, res, next) => {
       // Redirect, user should choose different username
       res.redirect('/signup');
     });
+});
+
+app.get('/logout', (req, res, next) => {
+  let id = req.session.userId;
+  let hash = req.session.hash;
+  models.Sessions.delete({id, hash})
+    .then(() => {
+      console.log('Deleted');
+    })
+    .catch((err) => {
+      console.log('Error: ', err);
+    });
+  next();
 });
 
 /************************************************************/
