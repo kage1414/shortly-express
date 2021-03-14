@@ -14,12 +14,10 @@ app.set('view engine', 'ejs');
 app.use(partials());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../public'), { redirect: false }));
 
 app.use(cookieParser);
 app.use(Auth.createSession);
-//app.use(Auth.loggedIn);
-//app.use(Auth.verifySession);
 
 app.get('/', Auth.verifySession, (req, res) => {
   res.render('index');
@@ -29,7 +27,7 @@ app.get('/create', Auth.verifySession, (req, res) => {
   res.render('index');
 });
 
-app.get('/links', Auth.verifySession, (req, res, next) => {
+app.get('/links', (req, res, next) => {
   models.Links.getAll()
     .then(links => {
       res.status(200).send(links);
@@ -78,7 +76,6 @@ app.post('/links', (req, res, next) => {
 // Write your authentication routes here
 /************************************************************/
 app.post('/login', (req, res, next) => {
-
   return models.Users.get({username: req.body.username})
     .then((results) => {
       if (!results) {
@@ -100,32 +97,35 @@ app.post('/login', (req, res, next) => {
         });
     })
     .then((results) => {
-
       res.redirect('/');
+    })
+    .error((err) => {
+      console.log('error: ', err);
     })
     .catch((err) => {
       res.redirect('/login');
     });
-
 });
 
 app.post('/signup', (req, res, next) => {
   return models.Users.get({username: req.body.username})
     .then((results) => {
-      if (!results) {
-        //create new user and save to db
-        return models.Users.create(req.body)
-          .then((results) => {
-            req.session.userId = results.insertId;
-            let options = {hash: req.session.hash};
-            let values = {userId: results.insertId};
-            models.Sessions.update(options, values);
-          });
-      } else {
-        // If user already exists
-        // Throw error to catch block
-        throw new Error('User Exists');
+      if (results) {
+        throw results;
       }
+      //create new user and save to db
+      var username = req.body.username;
+      var password = req.body.password;
+      return models.Users.create({username, password})
+        .then((results) => {
+          req.session.userId = results.insertId;
+          let options = {hash: req.session.hash};
+          let values = {userId: results.insertId};
+          models.Sessions.update(options, values);
+        });
+      // If user already exists
+      // Throw error to catch block
+
     })
     .then(() => {
       res.redirect('/');
@@ -140,7 +140,7 @@ app.get('/logout', (req, res, next) => {
   let id = req.session.userId;
   let hash = req.session.hash;
   models.Sessions.delete({id, hash})
-    .then(() => {
+    .then((result) => {
       console.log('Deleted');
     })
     .catch((err) => {

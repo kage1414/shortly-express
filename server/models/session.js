@@ -20,7 +20,10 @@ class Sessions extends Model {
    * with a user that is logged in.
    */
   isLoggedIn(session) {
+    // if (session) {
     return !!session.user;
+    // return !!session.userId;
+    // }
   }
 
   /**
